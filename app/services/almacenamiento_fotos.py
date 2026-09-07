@@ -1,8 +1,15 @@
-"""Almacenamiento de fotos - stub por ahora.
-En producción: conectar a Cloudflare R2 o AWS S3."""
+import os
+import uuid
+from pathlib import Path
+
+UPLOADS_DIR = Path("uploads")
+UPLOADS_DIR.mkdir(exist_ok=True)
 
 async def subir_foto(foto_bytes: bytes, empresa_id: str) -> str:
-    """Stub: devuelve un URL fake. En producción, aquí va el código real."""
-    # Por ahora, solo guardamos en memoria un fake URL
-    # En producción: uploadear a S3/R2 y devolver el URL real
-    return f"s3://safevision-bucket/empresa-{empresa_id}/foto-{id(foto_bytes)}.jpg"
+       nombre_archivo = f"{uuid.uuid4()}.jpg"
+       ruta_completa = UPLOADS_DIR / nombre_archivo
+       
+       with open(ruta_completa, "wb") as f:
+           f.write(foto_bytes)
+       
+       return f"http://192.168.20.71:8000/uploads/{nombre_archivo}"

@@ -22,10 +22,47 @@ def _evaluar_extintores(datos: dict) -> RulesResult:
         ))
         nivel_maximo = "critico"
     
-    # Manómetro en rojo
-    if datos.get("manometro") == "rojo":
+    # VENCIDO - CRÍTICO
+    if datos.get("vencido") == True:
+        fecha = datos.get("fecha_vencimiento", "desconocida")
         incumplimientos.append(Incumplimiento(
-            tipo="manometro_rojo", riesgo="critico", norma="Resolución 0312 de 2019"
+            tipo="extintor_vencido", riesgo="critico", norma="Decreto 1072 - NTC 2885",
+            requiere_revision_manual=True
+        ))
+        nivel_maximo = "critico"
+    
+    # FECHA NO VISIBLE - REVISIÓN MANUAL
+    if datos.get("fecha_vencimiento") == "no_visible":
+        incumplimientos.append(Incumplimiento(
+            tipo="fecha_vencimiento_no_visible", riesgo="medio", norma="Decreto 1072 - NTC 2885",
+            requiere_revision_manual=True
+        ))
+        if nivel_maximo == "bajo":
+            nivel_maximo = "medio"
+    
+    # Manómetro CONFIRMADAMENTE descargado (no null, debe ser False)
+    manometro_cargado = datos.get("manometro_cargado")
+    manometro_estado = datos.get("manometro", "")
+    
+    if manometro_cargado == False:  # Explícitamente descargado
+        incumplimientos.append(Incumplimiento(
+            tipo="extintor_descargado", riesgo="critico", norma="Resolución 0312 de 2019",
+            requiere_revision_manual=True
+        ))
+        nivel_maximo = "critico"
+    elif manometro_cargado is None or manometro_estado == "no_visible":
+        # No se pudo determinar — requiere revisión manual
+        incumplimientos.append(Incumplimiento(
+            tipo="manometro_no_visible", riesgo="medio", norma="Resolución 0312 de 2019",
+            requiere_revision_manual=True
+        ))
+        if nivel_maximo == "bajo":
+            nivel_maximo = "medio"
+    
+    # Manómetro visiblemente en rojo (como confirmación adicional)
+    if manometro_estado == "rojo":
+        incumplimientos.append(Incumplimiento(
+            tipo="manometro_en_rojo", riesgo="critico", norma="Resolución 0312 de 2019"
         ))
         nivel_maximo = "critico"
     
@@ -100,7 +137,7 @@ def _evaluar_epp(datos: dict) -> RulesResult:
         ))
         nivel_maximo = "medio"
     
-    acciones = [f"Revisar EPE en la escena - riesgo: {riesgo_escena}"]
+    acciones = [f"Revisar EPP en la escena - riesgo: {riesgo_escena}"]
     
     return RulesResult(
         nivel_riesgo=nivel_maximo,
