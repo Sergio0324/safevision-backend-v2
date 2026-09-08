@@ -24,11 +24,6 @@ app.add_middleware(
 # Registrar routers
 app.include_router(inspecciones.router)
 
-# Servir carpeta de uploads
-uploads_dir = Path("uploads")
-uploads_dir.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
 @app.get("/health")
 async def health():
     return JSONResponse({"status": "ok"})

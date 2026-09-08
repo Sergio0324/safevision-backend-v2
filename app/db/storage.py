@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.models import Activo, Inspeccion
 from app.models.schemas import InspeccionOut, VisionResult, RulesResult
 
+
 def obtener_o_crear_activo(
     db: Session, empresa_id: str, sede_id: str, categoria: str, ubicacion_descripcion: str,
 ) -> Activo:
