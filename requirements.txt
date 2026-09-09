@@ -3,9 +3,10 @@ uvicorn==0.24.0
 pydantic==2.4.2
 python-multipart==0.0.6
 sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+psycopg[binary]
 python-dotenv==1.0.0
 pillow==10.0.1
 numpy==1.24.3
 requests==2.31.0
+anthropic>=1.0.0
 cloudinary==1.36.0

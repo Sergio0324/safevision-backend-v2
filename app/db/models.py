@@ -15,7 +15,7 @@ class Empresa(Base):
     nit = Column(String, unique=True, nullable=False)
     plan = Column(String, default="piloto")
     modulos_activos = Column(JSON, default=list)
-    fecha_registro = Column(DateTime, default=datetime.utcnow)
+    fecha_registro = Column(DateTime, default=datetime.now)
     sedes = relationship("Sede", back_populates="empresa")
     usuarios = relationship("Usuario", back_populates="empresa")
 
@@ -48,7 +48,7 @@ class Activo(Base):
     codigo_interno = Column(String, nullable=False)
     ubicacion_descripcion = Column(String)
     qr_generado = Column(Boolean, default=False)
-    fecha_registro = Column(DateTime, default=datetime.utcnow)
+    fecha_registro = Column(DateTime, default=datetime.now)
     sede = relationship("Sede", back_populates="activos")
     inspecciones = relationship("Inspeccion", back_populates="activo")
 
@@ -66,7 +66,7 @@ class Inspeccion(Base):
     fecha_limite = Column(DateTime, nullable=True)
     validado_por = Column(UUID(as_uuid=False), ForeignKey("usuarios.id"), nullable=True)
     fecha_validacion = Column(DateTime, nullable=True)
-    creado_en = Column(DateTime, default=datetime.utcnow)
+    creado_en = Column(DateTime, default=datetime.utcnow())
     activo = relationship("Activo", back_populates="inspecciones")
 
 class HistorialInspeccion(Base):
@@ -75,5 +75,5 @@ class HistorialInspeccion(Base):
     inspeccion_id = Column(UUID(as_uuid=False), ForeignKey("inspecciones.id"), nullable=False)
     evento = Column(String, nullable=False)
     usuario_id = Column(UUID(as_uuid=False), ForeignKey("usuarios.id"), nullable=True)
-    fecha = Column(DateTime, default=datetime.utcnow)
+    fecha = Column(DateTime, default=datetime.now())
     detalle = Column(Text, nullable=True)
