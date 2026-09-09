@@ -66,7 +66,7 @@ class Inspeccion(Base):
     fecha_limite = Column(DateTime, nullable=True)
     validado_por = Column(UUID(as_uuid=False), ForeignKey("usuarios.id"), nullable=True)
     fecha_validacion = Column(DateTime, nullable=True)
-    creado_en = Column(DateTime, default=datetime.utcnow())
+    creado_en = Column(DateTime, default=datetime.now)
     activo = relationship("Activo", back_populates="inspecciones")
 
 class HistorialInspeccion(Base):
