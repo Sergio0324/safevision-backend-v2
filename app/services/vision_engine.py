@@ -11,57 +11,68 @@ PROMPTS = {
     # ============================================================
     # 1. EXTINTORES
     # ============================================================
-    Categoria.extintores: """ANALIZA CUIDADOSAMENTE esta foto de un extintor.
+Categoria.extintores: """Eres un inspector de seguridad industrial analizando UNA foto de un posible extintor.
 
-Responde SOLO en JSON válido, sin texto adicional.
+Responde ÚNICAMENTE con un objeto JSON válido. Sin texto antes, sin texto después, sin explicaciones, sin markdown (nada de ```json).
 
-INSTRUCCIONES CRÍTICAS:
+REGLA GENERAL (aplica a TODOS los campos): si no puedes ver algo con claridad, o dudas entre dos opciones, elige SIEMPRE la opción "no_visible" / null / la más conservadora. Nunca completes un campo por inferencia, costumbre o "lo típico en estos casos". Es preferible un campo vacío a un dato incorrecto.
 
-1. SOLO determina "manometro_cargado" si VES CLARAMENTE el manómetro.
-2. Si el manómetro NO está visible:
-   - "manometro": "no_visible"
-   - "manometro_cargado": null
-3. Si ves claramente el manómetro EN VERDE:
-   - "manometro": "verde"
-   - "manometro_cargado": true
-4. Si ves claramente el manómetro EN ROJO:
-   - "manometro": "rojo"
-   - "manometro_cargado": false
-5. Si ves claramente el manómetro EN AMARILLO:
-   - "manometro": "amarillo"
-   - "manometro_cargado": false
-6. Si NO ESTÁS SEGURO del color o estado del manómetro:
-   - "manometro_cargado": null
-7. NO inventes información que no pueda observarse.
+Si en la foto NO hay ningún extintor visible, responde solo:
+{"existe": false, "observaciones": "descripción breve de lo que sí se ve en la foto"}
 
-PARA FECHAS:
+Si SÍ hay un extintor (aunque sea parcialmente visible), evalúa cada campo con estas reglas:
 
-8. Si VES claramente una fecha de vencimiento, escríbela como YYYY-MM o YYYY-MM-DD.
-9. Si NO ves claramente la fecha → "fecha_vencimiento": "no_visible".
-10. "vencido": true SOLO si la fecha visible está claramente en el pasado.
-11. "vencido": false SOLO si la fecha visible está claramente en el futuro.
-12. "vencido": null si no existe una fecha visible o no puede determinarse.
+TIPO_EXTINTOR
+- Identifícalo solo si hay evidencia visual clara (color del cilindro, etiqueta, boquilla). Si no puedes distinguirlo → "desconocido".
 
-PARA EL ESTADO FÍSICO:
+ESTADO_FISICO (array)
+- Usa "bueno" ÚNICAMENTE si no observas ningún daño y el extintor está bien ubicado y visible. Si usas "bueno", no combines con otros valores.
+- Usa "corrosion", "fuga", "en_el_piso", "obstruido", "sin_soporte" solo si el daño/condición es CLARAMENTE visible en la imagen.
+- Si la imagen no permite evaluar el estado físico (muy borrosa, muy lejana, oscura) → ["no_determinable"].
 
-13. Solo reporta daños que sean VISIBLES.
-14. No determines mantenimiento interno mediante la fotografía.
-15. Si no puedes determinar una condición → no la inventes.
+MANOMETRO
+- "no_aplica": el tipo de extintor no usa manómetro visual (ej. CO2 típico), o no corresponde evaluarlo.
+- "no_visible": debería tener manómetro pero la imagen no permite verlo con claridad (ángulo, distancia, reflejo, obstrucción).
+- "verde" / "amarillo" / "rojo": solo si distingues el color de la aguja/zona con confianza.
+- manometro_cargado: true SOLO si manometro="verde". false SOLO si manometro="rojo" o "amarillo". null en cualquier otro caso (no_visible, no_aplica).
 
-Responde SOLO este JSON:
+PASADOR_SEGURIDAD / SELLO_INVIOLABILIDAD
+- "presente": se ve físicamente el elemento en su lugar.
+- "ausente": se ve claramente que NO está (falta el pasador, sello roto/faltante).
+- "no_visible": no se puede determinar por ángulo, distancia o resolución. Este es el valor por defecto si tienes dudas.
 
+SENALIZACION
+- Señal/aviso visible que indique la ubicación del extintor (aviso en pared, franja, letrero). "presente" / "ausente" / "no_visible" según lo que se vea del entorno EN LA FOTO, no supongas nada fuera del encuadre.
+
+FECHA_VENCIMIENTO
+- Formato colombiano DD/MM/AAAA. Si ves una fecha pero el formato es ambiguo o solo se distinguen algunos dígitos → "no_visible". No adivines dígitos ilegibles.
+- Devuelve "YYYY-MM-DD" o "YYYY-MM" solo si TODOS los dígitos necesarios son legibles.
+- vencido: true solo si hoy es claramente posterior a la fecha visible; false solo si es claramente anterior; null si fecha_vencimiento="no_visible" o hay cualquier duda.
+
+CONFIANZA_GENERAL (0.0 a 1.0)
+- Refleja SOLO qué tan clara/nítida/bien iluminada está la foto para hacer esta evaluación (no refleja si el extintor está en buen estado).
+- 0.9–1.0: foto nítida, extintor completo y bien iluminado.
+- 0.5–0.8: foto parcialmente clara, algunos campos con no_visible.
+- 0.0–0.4: foto borrosa, lejana, oscura o extintor muy parcial.
+
+OBSERVACIONES
+- 1-2 frases describiendo objetivamente lo que se ve, sin opiniones ni suposiciones sobre mantenimiento interno.
+
+Si hay más de un extintor en la foto, evalúa el más prominente/cercano y menciónalo en observaciones.
+
+Responde exactamente con esta estructura (usa los tipos indicados, no los valores de ejemplo):
 {
   "existe": true,
-  "tipo_extintor": "solkaflam|co2|pqs|agua|espuma|desconocido",
-  "estado_fisico": ["bueno|corrosion|fuga|en_el_piso|obstruido|sin_soporte"],
-  "senalizacion": "presente|ausente|no_visible",
-  "manometro": "verde|rojo|amarillo|no_visible|no_aplica",
-  "manometro_cargado": true,
-  "pasador_seguridad": "presente|ausente|no_visible",
-  "sello_inviolabilidad": "presente|ausente|no_visible",
-  "fecha_vencimiento": "no_visible|YYYY-MM-DD|YYYY-MM",
-  "vencido": true,
-  "observaciones": "descripción breve de lo que ves",
+  "tipo_extintor": "solkaflam" | "co2" | "pqs" | "agua" | "espuma" | "desconocido",
+  "estado_fisico": ["bueno"] | ["no_determinable"] | ["corrosion", "fuga", "en_el_piso", "obstruido", "sin_soporte"],
+  "senalizacion": "presente" | "ausente" | "no_visible",
+  "manometro": "verde" | "rojo" | "amarillo" | "no_visible" | "no_aplica",
+  "manometro_cargado": true | false | null,
+  "pasador_seguridad": "presente" | "ausente" | "no_visible",
+  "sello_inviolabilidad": "presente" | "ausente" | "no_visible",
+  "fecha_vencimiento": "no_visible" | "YYYY-MM-DD" | "YYYY-MM",
+  "vencido": true | false | null,
+  "observaciones": "string breve",
   "confianza_general": 0.0
 }""",
 

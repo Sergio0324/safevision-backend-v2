@@ -1,6 +1,7 @@
 """Capa de persistencia en PostgreSQL."""
 
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 from app.db.models import Activo, Inspeccion
 from app.models.schemas import InspeccionOut, VisionResult, RulesResult
 
@@ -35,7 +36,7 @@ def obtener_o_crear_activo(
 def guardar_inspeccion(
     db: Session, activo: Activo, foto_url: str,
     resultado_ia: VisionResult, resultado_reglas: RulesResult, hallazgo_texto: str,
-) -> InspeccionOut:
+creado_en: datetime) -> InspeccionOut:
     """Guarda la inspección completa en la BD."""
     inspeccion = Inspeccion(
         activo_id=activo.id,
@@ -44,6 +45,7 @@ def guardar_inspeccion(
         resultado_reglas=resultado_reglas.model_dump(),
         hallazgo_texto=hallazgo_texto,
         nivel_riesgo=resultado_reglas.nivel_riesgo,
+        creado_en=datetime.now(timezone.utc),
         estado="pendiente_validacion",
     )
     db.add(inspeccion)

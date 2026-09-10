@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
@@ -18,6 +18,7 @@ async def crear_inspeccion(
     ubicacion_descripcion: str = Form(...),
     foto: UploadFile = File(...),
     usuario: UsuarioActual = Depends(get_current_user),
+    creado_en=datetime.now(timezone.utc),
     db: Session = Depends(get_db),
 ):
     """Crea una inspección: foto → IA → reglas → BD."""
@@ -46,6 +47,7 @@ async def crear_inspeccion(
         db, activo=activo, foto_url=foto_url,
         resultado_ia=resultado_ia, resultado_reglas=resultado_reglas,
         hallazgo_texto=hallazgo_texto,
+        creado_en=datetime.now(timezone.utc)
     )
 
 @router.get("", response_model=list[InspeccionOut])
