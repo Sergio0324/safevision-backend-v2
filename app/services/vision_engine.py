@@ -435,8 +435,8 @@ async def analizar_foto(
         client = Anthropic(api_key=api_key)
 
         response = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=1000,
+            model="claude-sonnet-5",
+            max_tokens=2000,
             messages=[
                 {
                     "role": "user",
